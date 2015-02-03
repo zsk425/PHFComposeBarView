@@ -1,5 +1,4 @@
 #import <QuartzCore/QuartzCore.h>
-#import <PHFDelegateChain/PHFDelegateChain.h>
 #import "PHFComposeBarView.h"
 #import "PHFComposeBarView_TextView.h"
 #import "PHFComposeBarView_Button.h"
@@ -56,7 +55,6 @@ static CGFloat kTextViewToSuperviewHeightDelta;
 @property (strong, nonatomic, readonly) UIToolbar *backgroundView;
 @property (strong, nonatomic, readonly) UIView *topLineView;
 @property (strong, nonatomic, readonly) UILabel *charCountLabel;
-@property (strong, nonatomic) PHFDelegateChain *delegateChain;
 @property (strong, nonatomic, readonly) UIButton *textContainer;
 @property (assign, nonatomic) CGFloat previousTextHeight;
 @end
@@ -127,8 +125,22 @@ static CGFloat kTextViewToSuperviewHeightDelta;
 
 #pragma mark - UITextViewDelegate
 
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
+{
+    if ([self.delegate respondsToSelector:@selector(textView:shouldChangeTextInRange:replacementText:)]) {
+        return [self.delegate textView:textView shouldChangeTextInRange:range replacementText:text];
+    }
+    
+    return YES;
+}
+
 - (void)textViewDidChange:(UITextView *)textView {
     [self handleTextViewChangeAnimated:NO];
+    
+    if ([self.delegate respondsToSelector:@selector(textViewDidChange:)])
+    {
+        [self.delegate textViewDidChange:textView];
+    }
 }
 
 #pragma mark - Public Properties
@@ -173,14 +185,6 @@ static CGFloat kTextViewToSuperviewHeightDelta;
         _buttonTitle = buttonTitle;
         [[self button] setTitle:buttonTitle forState:UIControlStateNormal];
         [self resizeButton];
-    }
-}
-
-@synthesize delegate = _delegate;
-- (void)setDelegate:(id<PHFComposeBarViewDelegate>)delegate {
-    if (_delegate != delegate) {
-        _delegate = delegate;
-        [self setupDelegateChainForTextView];
     }
 }
 
@@ -383,7 +387,7 @@ static CGFloat kTextViewToSuperviewHeightDelta;
         [_textView setScrollIndicatorInsets:UIEdgeInsetsMake(8.0f, 0.0f, 8.0f, 0.5f)];
         [_textView setBackgroundColor:[UIColor clearColor]];
         [_textView setFont:[UIFont systemFontOfSize:kFontSize]];
-        [self setupDelegateChainForTextView];
+        _textView.delegate = self;
     }
 
     return _textView;
@@ -617,12 +621,6 @@ static CGFloat kTextViewToSuperviewHeightDelta;
     [self addSubview:[self textContainer]];
 
     [self resizeButton];
-}
-
-- (void)setupDelegateChainForTextView {
-    PHFDelegateChain *delegateChain = [PHFDelegateChain delegateChainWithObjects:self, [self delegate], nil];
-    [self setDelegateChain:delegateChain];
-    [[self textView] setDelegate:(id<UITextViewDelegate>)delegateChain];
 }
 
 - (CGFloat)textHeight {

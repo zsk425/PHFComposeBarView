@@ -1,10 +1,14 @@
 PODS:
-  - PHFDelegateChain (1.0.1)
+  - PHFComposeBarView (2.0.2)
 
 DEPENDENCIES:
-  - PHFDelegateChain (~> 1.0)
+  - PHFComposeBarView (from `../`)
+
+EXTERNAL SOURCES:
+  PHFComposeBarView:
+    :path: ../
 
 SPEC CHECKSUMS:
-  PHFDelegateChain: f4d5a2847960b3dd16fc2f2196833f3a66704745
+  PHFComposeBarView: e9ac29280344457602104fae315ee0687d65e26a
 
 COCOAPODS: 0.35.0
